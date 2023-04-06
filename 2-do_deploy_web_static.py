@@ -6,9 +6,9 @@ Fabric script to deploy a static website.
 from fabric.api import run, put, env
 import os
 
-env.hosts = ['<IP web-01>', '<IP web-02>']
-env.user = '<username>'
-env.key_filename = '~/.ssh/<my_ssh_private_key>'
+env.hosts = ['54.160.103.207', '34.202.159.134']
+env.user = 'ubuntu'
+env.key_filename = '~/.ssh/school'
 
 def do_deploy(archive_path):
     if not os.path.exists(archive_path):
