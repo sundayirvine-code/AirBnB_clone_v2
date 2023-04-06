@@ -1,30 +1,39 @@
 #!/usr/bin/python3
 """
-Fabric script based on the file 1-pack_web_static.py that distributes an
-archive to the web servers
+Fabric script to deploy a static website.
 """
 
-from fabric.api import put, run, env
-from os.path import exists
-env.hosts = ['54.160.103.207', '54.160.103.207']
+from fabric.api import run, put, env
+import os
 
+env.hosts = ['<IP web-01>', '<IP web-02>']
+env.user = '<username>'
+env.key_filename = '~/.ssh/<my_ssh_private_key>'
 
 def do_deploy(archive_path):
-    """distributes an archive to the web servers"""
-    if exists(archive_path) is False:
+    if not os.path.exists(archive_path):
         return False
+
     try:
-        file_n = archive_path.split("/")[-1]
-        no_ext = file_n.split(".")[0]
-        path = "/data/web_static/releases/"
+        # Upload archive to web server
         put(archive_path, '/tmp/')
-        run('mkdir -p {}{}/'.format(path, no_ext))
-        run('tar -xzf /tmp/{} -C {}{}/'.format(file_n, path, no_ext))
-        run('rm /tmp/{}'.format(file_n))
-        run('mv {0}{1}/web_static/* {0}{1}/'.format(path, no_ext))
-        run('rm -rf {}{}/web_static'.format(path, no_ext))
+
+        # Uncompress archive to folder /data/web_static/releases/<archive filename without extension> on web server
+        archive_filename = os.path.basename(archive_path)
+        folder_name = '/data/web_static/releases/' + archive_filename.split('.')[0]
+        run('mkdir -p {}'.format(folder_name))
+        run('tar -xzf /tmp/{} -C {}'.format(archive_filename, folder_name))
+
+        # Delete archive from web server
+        run('rm /tmp/{}'.format(archive_filename))
+
+        # Delete symbolic link /data/web_static/current from web server
         run('rm -rf /data/web_static/current')
-        run('ln -s {}{}/ /data/web_static/current'.format(path, no_ext))
+
+        # Create new symbolic link /data/web_static/current on web server linked to new version of code
+        run('ln -s {} /data/web_static/current'.format(folder_name))
+
+        print("New version deployed!")
         return True
     except:
         return False
