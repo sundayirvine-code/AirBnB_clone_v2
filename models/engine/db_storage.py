@@ -85,5 +85,7 @@ class DBStorage:
         self.__session = scoped_session(session)
 
     def close(self):
-        """Close scoped session"""
-        self.__session.remove()
+        """display our HBNB data
+        """
+        self.__session.__class__.close(self.__session)
+        self.reload()
